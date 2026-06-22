@@ -7,14 +7,21 @@ const bookingSchema = new mongoose.Schema({
     required: true
   },
   propertyTitle: { type: String, required: true },
-  propertyLocation: { type: String },
+  propertyLocation: { type: String, default: '' },
+  propertyImage: { type: String, default: '' },
+
   tenantEmail: { type: String, required: true },
   tenantName: { type: String, required: true },
+  tenantPhoto: { type: String, default: '' },
+
   ownerEmail: { type: String, required: true },
+
   moveInDate: { type: String, required: true },
   contactNumber: { type: String, required: true },
   additionalNotes: { type: String, default: '' },
+
   amount: { type: Number, required: true },
+
   bookingStatus: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
