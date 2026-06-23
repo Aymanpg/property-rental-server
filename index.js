@@ -13,6 +13,7 @@ import bookingRoutes from './routes/bookings.js'
 import paymentRoutes from './routes/payments.js'
 import reviewRoutes from './routes/reviews.js'
 import favoriteRoutes from './routes/favorites.js'
+import notificationRoutes from './routes/notifications.js'
 
 dotenv.config()
 
@@ -41,6 +42,7 @@ app.use('/bookings', bookingRoutes)
 app.use('/payments', paymentRoutes)
 app.use('/reviews', reviewRoutes)
 app.use('/favorites', favoriteRoutes)
+app.use('/notifications', notificationRoutes)
 
 app.get('/', (req, res) => {
   res.send('Property Rental API is running ✅')

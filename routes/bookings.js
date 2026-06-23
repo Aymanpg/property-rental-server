@@ -2,6 +2,7 @@ import express from 'express'
 import Booking from '../models/Booking.js'
 import verifyToken from '../middleware/verifyToken.js'
 import verifyRole from '../middleware/verifyRole.js'
+import Notification from '../models/Notification.js'
 
 const router = express.Router()
 
@@ -12,6 +13,9 @@ router.post('/', verifyToken, async (req, res) => {
       propertyId,
       moveInDate,
       tenantEmail,
+      tenantName,
+      ownerEmail,
+      propertyTitle,
       propertyImage
     } = req.body
 
@@ -41,10 +45,30 @@ router.post('/', verifyToken, async (req, res) => {
       })
     }
 
-    // CREATE BOOKING (now includes propertyImage safely)
+    // CREATE BOOKING
     const booking = await Booking.create({
       ...req.body,
       propertyImage: propertyImage || ''
+    })
+
+    // =========================
+    // 🔔 NOTIFICATION: TENANT
+    // =========================
+    await Notification.create({
+      userEmail: tenantEmail,
+      message: `Your booking for "${propertyTitle}" has been submitted and is pending approval.`,
+      type: 'booking_confirmed',
+      link: '/dashboard/tenant/bookings'
+    })
+
+    // =========================
+    // 🔔 NOTIFICATION: OWNER
+    // =========================
+    await Notification.create({
+      userEmail: ownerEmail,
+      message: `New booking request for "${propertyTitle}" from ${tenantName}.`,
+      type: 'booking_confirmed',
+      link: '/dashboard/owner/booking-requests'
     })
 
     res.status(201).json(booking)
@@ -99,6 +123,22 @@ router.patch('/:id/status', verifyToken, verifyRole('owner'), async (req, res) =
       { bookingStatus },
       { new: true }
     )
+
+    // =========================
+    // 🔔 NOTIFICATION: TENANT
+    // =========================
+    await Notification.create({
+      userEmail: updated.tenantEmail,
+      message:
+        bookingStatus === 'approved'
+          ? `Your booking for "${updated.propertyTitle}" has been approved! 🎉`
+          : `Your booking for "${updated.propertyTitle}" has been rejected.`,
+      type:
+        bookingStatus === 'approved'
+          ? 'booking_approved'
+          : 'booking_rejected',
+      link: '/dashboard/tenant/bookings'
+    })
 
     res.json(updated)
   } catch (error) {
