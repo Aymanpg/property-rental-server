@@ -20,17 +20,19 @@ router.post('/', verifyToken, async (req, res) => {
     } = req.body
 
     // Check existing booking
-    const existingBooking = await Booking.findOne({
-      propertyId,
-      tenantEmail,
-      bookingStatus: { $in: ['pending', 'approved'] }
-    })
+    // ✅ Same tenant, same property, same date — block করো
+const duplicateBooking = await Booking.findOne({
+  propertyId,
+  tenantEmail,
+  moveInDate,
+  bookingStatus: { $in: ['pending', 'approved'] }
+})
 
-    if (existingBooking) {
-      return res.status(400).json({
-        message: 'You already have an active booking for this property'
-      })
-    }
+if (duplicateBooking) {
+  return res.status(400).json({
+    message: 'You already have an active booking for this property on this date.'
+  })
+}
 
     // Check date clash
     const clashingBooking = await Booking.findOne({
